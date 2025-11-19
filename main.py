@@ -1,8 +1,12 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List
+from database import create_document, get_documents
+from schemas import Lead
 
-app = FastAPI()
+app = FastAPI(title="Quran Class Lead API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -14,7 +18,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello from FastAPI Backend!"}
+    return {"message": "Quran Class Lead API running"}
 
 @app.get("/api/hello")
 def hello():
@@ -64,6 +68,31 @@ def test_database():
     
     return response
 
+# -------- Lead Endpoints --------
+
+class LeadCreate(Lead):
+    pass
+
+@app.post("/api/leads", status_code=201)
+def create_lead(lead: LeadCreate):
+    try:
+        lead_id = create_document("lead", lead)
+        return {"id": lead_id, "message": "Lead created"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/leads")
+def list_leads(limit: int = 50):
+    try:
+        docs = get_documents("lead", limit=limit)
+        # Convert ObjectIds to strings for JSON-serializable response
+        cleaned = []
+        for d in docs:
+            d["_id"] = str(d.get("_id"))
+            cleaned.append(d)
+        return cleaned
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

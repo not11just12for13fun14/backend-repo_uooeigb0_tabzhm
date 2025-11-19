@@ -11,8 +11,8 @@ Model name is converted to lowercase for the collection name:
 - BlogPost -> "blogs" collection
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, Literal
 
 # Example schemas (replace with your own):
 
@@ -37,6 +37,23 @@ class Product(BaseModel):
     price: float = Field(..., ge=0, description="Price in dollars")
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
+
+# Lead generation schema for Adult Quran Classes
+class Lead(BaseModel):
+    """
+    Leads collection schema
+    Collection name: "lead"
+    """
+    full_name: str = Field(..., min_length=2, description="Prospect's full name")
+    email: EmailStr = Field(..., description="Prospect's email")
+    phone: str = Field(..., min_length=7, max_length=20, description="WhatsApp/phone number")
+    preferred_mode: Literal["online", "offline"] = Field("online", description="Class mode preference")
+    location: Optional[str] = Field(None, description="City/Area (if offline)")
+    level: Literal["beginner", "intermediate", "advanced"] = Field("beginner", description="Current Quran reading level")
+    goals: Optional[str] = Field(None, max_length=500, description="Learning goals")
+    preferred_days: Optional[str] = Field(None, description="Preferred days (e.g., Mon-Wed)")
+    preferred_time: Optional[str] = Field(None, description="Preferred time slot")
+    consent_marketing: bool = Field(False, description="Consent to receive updates via WhatsApp/email")
 
 # Add your own schemas here:
 # --------------------------------------------------
